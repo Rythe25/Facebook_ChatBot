@@ -1,0 +1,9 @@
+# Session 1 — echo bot only.
+# Just enough to run the FastAPI webhook and reply on Facebook Messenger.
+# (The full langchain / pinecone / gspread stack is added in later sessions.)
+# Install with:  pip install -r requirements.txt   (Python 3.11 or 3.12)
+
+fastapi
+uvicorn[standard]
+pydantic-settings
+httpx
