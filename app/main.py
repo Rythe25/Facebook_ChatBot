@@ -5,8 +5,11 @@ Run the dev server with:
     uvicorn app.main:app --reload
 """
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+
+from app.agent import build_agent
 
 from app.config import settings
 from app.webhook import router as webhook_router
@@ -15,7 +18,12 @@ from app.webhook import router as webhook_router
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Fanpage Chatbot Capstone")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    build_agent()      # build the agent ONCE when the server starts
+    yield              # app runs here; code after yield runs on shutdown
+
+app = FastAPI(title="Fanpage Chatbot Capstone", lifespan=lifespan)
 
 # All Facebook endpoints (GET verify + POST receive) live in app/webhook.py.
 app.include_router(webhook_router)

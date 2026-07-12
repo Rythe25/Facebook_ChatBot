@@ -1,0 +1,12 @@
+# Session 2 — AI agent + conversation memory.
+# New packages added on top of Session 1 (requirements.txt must be installed too).
+# Install with:  pip install -r requirements_session2.txt   (Python 3.11 or 3.12)
+#
+# langchain-core comes in automatically as a dependency of the packages below
+# (memory.py uses InMemoryChatMessageHistory from langchain_core).
+
+langchain
+langchain-google-genai
+
+# Only needed if you set LLM_PROVIDER=openai instead of gemini:
+# langchain-openai

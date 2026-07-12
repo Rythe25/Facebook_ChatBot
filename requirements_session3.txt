@@ -1,0 +1,11 @@
+# Session 3 — FAQ retrieval (RAG) with Pinecone.
+# Adds on top of Session 1 + 2. Install all three to set up a fresh machine:
+#   pip install -r requirements.txt
+#   pip install -r requirements_session2.txt
+#   pip install -r requirements_session3.txt
+#
+# Embeddings reuse langchain-google-genai (already installed in Session 2) via
+# GoogleGenerativeAIEmbeddings (model text-embedding-004, 768 dimensions), so the
+# only new package here is the official Pinecone client.
+
+pinecone

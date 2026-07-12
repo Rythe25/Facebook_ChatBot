@@ -11,6 +11,7 @@ from fastapi import APIRouter, Request, Response
 
 from app.config import settings
 from app.messenger import send_message
+from app.agent import reply
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -63,11 +64,8 @@ async def receive_message(request: Request) -> Response:
 
             logger.info("Message from %s: %s", sender_id, message_text)
 
-            # --- Session 1: echo the customer's text straight back. ---
-            reply_text = message_text
-            # TODO (Session 2): replace the echo with the real agent:
-            #     from app.agent import reply
-            #     reply_text = await reply(sender_id, message_text)
+            # --- Session 2: let the agent generate the reply. ---
+            reply_text = await reply(sender_id, message_text)
 
             await send_message(sender_id, reply_text)
 
