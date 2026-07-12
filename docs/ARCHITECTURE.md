@@ -160,3 +160,22 @@ LOG_LEVEL=INFO
 
 10. **Empty Pinecone index returns no error**
     If `scripts/upload_faqs.py` was never run, queries return empty results — no exception. Bot will say "I don't know about that" for every question. Always verify the index has vectors before debugging the agent.
+
+## Improvements
+
+Enhancements made beyond the base build. Format: the problem a student hit, then the fix applied and its verified result.
+
+### 1. Unaccented Vietnamese misdetected as Khmer
+
+**Problem:** A Vietnamese customer typing without diacritics — e.g. `Shop mo cua may gio vay?` (= `Shop mở cửa mấy giờ vậy?`) — was answered in **Khmer** with the "let me check with the team" fallback, instead of the opening hours in Vietnamese. Vietnamese users very often type without accent marks, so this is a common real case, not an edge case.
+
+**Root cause:** The system prompt only said "reply in the same language the customer writes in" plus a blanket "if they ask in Khmer, call them បង" rule. On unaccented Latin text the model's language guess is unstable and the Khmer rule mis-fired — even though Khmer uses a non-Latin script, so Latin-script input should never be treated as Khmer.
+
+**Fix (`app/prompts.py`):**
+- Unaccented Latin text that reads as Vietnamese IS Vietnamese → reply in natural Vietnamese.
+- Only use Khmer when the message is actually in Khmer script (e.g. សួស្តី).
+- Never reply in Khmer to a Latin-script message.
+
+**Result (verified with `scripts/local_test.py`):**
+- Before: `Shop mo cua may gio vay?` → replied in Khmer, no answer.
+- After: `Shop mo cua may gio vay?` → *"Chào bạn, Happy Paws Pet Salon mở cửa từ Thứ Hai đến Thứ Bảy, từ 8 giờ sáng đến 7 giờ tối. Chủ Nhật thì mở cửa từ 9 giờ sáng đến 5 giờ chiều nhé."* (correct hours, in Vietnamese).
