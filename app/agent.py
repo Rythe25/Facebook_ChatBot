@@ -7,6 +7,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from app.config import settings
 from app.memory import get_history
 from app.prompts import SYSTEM_PROMPT
+from app.tools.faq_search import search_faq
 
 logger = logging.getLogger(__name__)
 _agent = None  # singleton, set once in build_agent()
@@ -27,7 +28,7 @@ def build_agent():
         raise ValueError(f"Unknown LLM_PROVIDER: {settings.llm_provider}")
 
     # Session 3-4: add tools=[search_faq, save_to_sheet] to the call below
-    _agent = create_agent(llm, tools=[], system_prompt=SYSTEM_PROMPT)
+    _agent = create_agent(llm, tools=[search_faq], system_prompt=SYSTEM_PROMPT)
     logger.info("Agent built (provider=%s).", settings.llm_provider)
     return _agent
 
@@ -37,7 +38,7 @@ async def reply(user_id: str, message: str) -> str:
     result = await _agent.ainvoke(
         {"messages": history.messages + [HumanMessage(content=message)]}
     )
-    reply_text = result["messages"][-1].content
+    reply_text = result["messages"][-1].text
 
     history.add_user_message(message)
     history.add_ai_message(reply_text)
