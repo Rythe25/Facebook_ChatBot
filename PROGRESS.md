@@ -97,49 +97,34 @@ publishing at all.
 
 ---
 
-## ✅ Part 4 — Testing without Meta in the loop (2026-07-30)
+## 🗑️ Part 4 — Faked-inbound workaround (2026-07-30, since removed)
 
-> Written while Part 3's diagnosis was believed correct. `fake_webhook.py` is
-> still genuinely useful — it tests the whole loop with no ngrok and no
-> dashboard — but it is now a convenience, not a workaround. Real delivery works
-> (Part 5).
+Written while Part 3's diagnosis was believed correct. A `scripts/fake_webhook.py`
+helper POSTed a Meta-shaped payload straight to `http://127.0.0.1:8000/webhook`,
+on the theory that **only the inbound direction was blocked** — the outbound Graph
+send works for anyone with a role on the page, so faking the inbound half still
+produced a real reply in Messenger.
 
-Key insight at the time: **only the inbound direction is blocked.** The
-*outbound* Graph API send is unaffected —
-`pages_messaging` Standard Access covers anyone with a role on the page. So we
-fake the inbound payload and the reply still arrives in real Messenger.
+It worked, but it was solving a problem that did not exist (Part 5). Once real
+delivery was fixed, the only thing it uniquely covered — payload parsing, the
+`is_echo` filter, and the outbound send — got exercised by every real message
+anyway. **Deleted in Part 6.**
 
-`scripts/fake_webhook.py` **(new)** POSTs a Meta-shaped payload straight to
-`http://127.0.0.1:8000/webhook`, using the real PSID captured in Part 3:
+### Current testing tiers
 
-```powershell
-uvicorn app.main:app --reload --port 8000          # terminal 1
-python scripts/fake_webhook.py "What time do you open?"   # terminal 2
-python scripts/fake_webhook.py "សួស្តី តើហាងលក់មីអីខ្លះ?"
-python scripts/fake_webhook.py --psid <other-psid> "hi"
-```
+| Tier | Command | Covers |
+|---|---|---|
+| Agent only | `python scripts/local_test.py` | LLM, prompt, RAG, Sheets, memory |
+| Real Messenger | message the page | everything, end to end |
 
-No ngrok needed — the POST goes to localhost.
+`local_test.py` with no arguments is interactive — the easiest way to exercise
+multi-turn memory and a full booking flow.
 
-### The three testing tiers
+### Gotchas (still current)
 
-| Tier | Command | Covers | Doesn't cover |
-|---|---|---|---|
-| Agent only | `python scripts/local_test.py` | LLM, prompt, RAG, Sheets, memory | webhook parsing, Facebook send |
-| **Full loop, faked inbound** | `python scripts/fake_webhook.py "..."` | **everything** — payload parsing, `is_echo` filter, agent, real send to Messenger | only that Meta didn't originate the POST |
-| Meta's Test button | Webhooks page → **Test** next to `messages` | Meta → ngrok URL actually reaches us | `send_message` fails — the sample PSID is fake |
-
-Tier 2 exercises the identical code path a real message would. The one untested
-link is Meta's delivery, already proven separately by the ngrok handshake (Part 3).
-
-### Gotchas
-
-- **24-hour messaging window** — the send only succeeds if that PSID messaged the
-  page within 24h. Error code 10 / "outside allowed window" means it lapsed: message
-  the page from that account again (still lands in the inbox in dev mode) and re-run.
-- The window is driven by the user's *actual* last message, which Meta records
-  regardless of whether a webhook was delivered — so dev mode doesn't prevent
-  reopening it.
+- **24-hour messaging window** — the outbound send only succeeds if that PSID
+  messaged the page within 24h. Error code 10 / "outside allowed window" means it
+  lapsed: message the page from that account again and retry.
 - Memory is in-process (`app/memory.py`), so `--reload` restarts wipe conversation
   history mid-test.
 
@@ -229,7 +214,7 @@ English, Khmer, and RAG retrieval all confirmed over real Messenger delivery.
 | `app/messenger.py` | Token moved from query param to `Authorization` header |
 | `app/main.py` | `httpx` logger pinned to WARNING; removed stale `TODO (Session 2)` (done by `lifespan`) |
 | `app/memory.py` | Removed `clear_history()` — never called |
-| `scripts/fake_webhook.py` | Committed (was untracked) |
+| `scripts/fake_webhook.py` | Deleted — a workaround for a problem that turned out not to exist (Part 4) |
 
 `docs/` (PRD, ARCHITECTURE, SPRINT_PLAN) left untouched — course scaffolding, not app docs.
 
@@ -285,14 +270,12 @@ Notes: ngrok's free URL changes on every restart (re-paste it into step 1 each
 time — delivery silently stops otherwise). The app does **not** need to be
 published; Development mode delivers fine once step 2 is done (Part 5).
 
-**To just test the bot, skip all of the above** (no ngrok, no Meta dashboard):
+**To just test the agent, skip all of the above** (no ngrok, no Meta dashboard):
 
 ```powershell
-uvicorn app.main:app --reload --port 8000
-python scripts/fake_webhook.py "What time do you open?"
+python scripts/local_test.py "What time do you open?"   # one-shot
+python scripts/local_test.py                            # interactive, tests memory
 ```
-
-See Part 4.
 
 ---
 

@@ -72,7 +72,6 @@ scripts/
   create_index.py    create the Pinecone index (run once)
   upload_faqs.py     embed faqs.csv and upsert to Pinecone (run once, and after every edit)
   local_test.py      chat with the agent from the terminal (no Facebook needed)
-  fake_webhook.py    POST a Meta-shaped payload to your own /webhook (no ngrok needed)
 docs/                PRD.md, ARCHITECTURE.md, SPRINT_PLAN.md
 PROGRESS.md          build log, root-cause notes, and the verification record
 ```
@@ -163,12 +162,11 @@ its events to my app."* You need both. See PROGRESS.md Part 3 for the full diagn
 
 ## Testing
 
-Three tiers, cheapest first:
+Two tiers, cheapest first:
 
 | Tier | Command | Covers |
 |---|---|---|
 | Agent only | `python scripts/local_test.py "What time do you open?"` | LLM, prompt, RAG, Sheets, memory |
-| Full loop, faked inbound | `python scripts/fake_webhook.py "What time do you open?"` | + webhook parsing, echo filter, real send to Messenger |
 | Real Messenger | message the page | everything, end to end |
 
 `local_test.py` with no arguments starts an interactive session, which is the
