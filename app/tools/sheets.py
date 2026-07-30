@@ -14,19 +14,19 @@ _worksheet = (
 
 
 @tool
-def save_booking(name: str, phone: str, service: str,
+def save_booking(name: str, phone: str, order: str,
                  preferred_time: str, notes: str = "") -> str:
-    """Save a customer's grooming booking to the salon's records.
-    Call this ONLY after you have the customer's name, phone, the service,
-    and their preferred date/time.
+    """Save a customer's order or table reservation to the restaurant's records.
+    Call this ONLY after you have the customer's name, phone, what they want
+    (dishes to order or a table reservation), and their preferred date/time.
 
     Args:
         name: customer's full name
         phone: customer's phone number
-        service: the grooming service requested
+        order: the dishes ordered or the table reservation (e.g. "Beef Noodle x2" or "table for 4")
         preferred_time: preferred date and/or time
-        notes: any extra details (breed, size, special requests)
+        notes: any extra details (delivery address, spice level, special requests)
     """
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    _worksheet.append_row([timestamp, name, phone, service, preferred_time, notes])
-    return f"Booking saved for {name} ({service}, {preferred_time})."
+    _worksheet.append_row([timestamp, name, phone, order, preferred_time, notes])
+    return f"Saved for {name} ({order}, {preferred_time})."

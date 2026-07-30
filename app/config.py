@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     # "gemini" (default — no international Visa card needed) or "openai".
     llm_provider: str = "gemini"
     openai_api_key: str = ""
-    google_api_key: str = ""          # used by Gemini
+    google_api_key: str = ""          # used by Gemini (env var: GOOGLE_API_KEY)
 
     # --- Vector DB (Pinecone) ---
     pinecone_api_key: str = ""
@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     fb_page_access_token: str = ""    # long-lived token, expires every 60 days
 
     # --- Google Sheets ---
-    google_sheets_credentials_path: str = "./credentials/service-account.json"
+    google_sheets_credentials_path: str = "app/credentials/service_account.json"
     google_sheets_id: str = ""
 
     # --- Misc ---

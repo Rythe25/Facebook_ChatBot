@@ -19,7 +19,7 @@ def build_agent():
 
     if settings.llm_provider == "gemini":
         llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+            model="gemini-flash-latest",
             google_api_key=settings.google_api_key,
         )
     elif settings.llm_provider == "openai":

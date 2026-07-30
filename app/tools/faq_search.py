@@ -17,9 +17,10 @@ SCORE_THRESHOLD = 0.5
 
 @tool
 def search_faq(query: str) -> str:
-    """Look up the pet salon's FAQ to answer customer questions about hours,
-    prices, services, location, payment, booking, and policies.
-    Call this whenever the customer asks anything about the business."""
+    """Look up the noodle restaurant's FAQ to answer customer questions about
+    hours, menu, dishes, prices, ingredients, location, payment, delivery,
+    takeaway, and reservations.
+    Call this whenever the customer asks anything about the restaurant or menu."""
     vector = _embeddings.embed_query(query)
     result = _index.query(vector=vector, top_k=3, include_metadata=True)
     matches = [m for m in result["matches"] if m["score"] >= SCORE_THRESHOLD]

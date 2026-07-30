@@ -1,47 +1,81 @@
-# Local Noodle Restuarant
+# 🍜 Phnom Penh Noodle House
 
-. Khmer Noodle (Num Banh Chok)
-. Chinese Noodle (Kuy Teav)
+*Warm bowls, made fresh every morning — Khmer & Chinese noodles the local way.*
 
-. Open 7AM - Close 9PM
-. Monday - Sunday
+🕖 **Open daily 7:00 AM – 9:00 PM** (Monday – Sunday)
+📍 Street 57, Boeung Keng Kang 1 (BKK1), Chamkarmon, Phnom Penh
+📞 Call / Telegram: +855 12 345 678
 
-## Khmer Noodle
+> Prices are in Cambodian riel (៛). ~4,000៛ ≈ $1.
+> Every bowl comes with fresh herbs, lime, and chili on the side.
 
-=== Fish 10,000 riel
-. Khmer Soup (Somlor Khmer)
-=== Chicken 10,000 riel
-. Kari Soup
+---
 
-## Chinese Noodle
+## 🐟 Khmer Noodle — Num Banh Chok
 
-Large or Small Noodle
-=== Phnom Penh Standard Noodle (Kuy Teav Pnhom Penh) 12,000 riel
-. Mixed Intestines
-. Cow-Joints and Tongues
-. Beef
-. Bean Sprout & Lettuce
+Soft rice noodles under a fragrant Khmer broth, topped with fresh
+cucumber, banana blossom, bean sprouts, and morning-picked herbs.
 
-=== Beef Noodle 12,000 riel
-. Bean Sprout & Lettuce
-. Beef
-. Meat Ball
+**Fish — Khmer Soup (Somlor Khmer) · 10,000៛**
+Our signature. Fresh fish in a lemongrass-and-kroeung green broth.
 
-=== Beef-Joints Noodle 13,000 riel
-. Bean Sprout & Lettuce
-. Beef
-. Meat Ball
-. Cow-Joints
+**Chicken — Kari Soup (Somlor Kari) · 10,000៛**
+Tender chicken in a mild, creamy coconut curry broth.
 
-=== Seafood Noodle 13,000 riel
-. Bean Sprout & Lettuce
-. Sliced octopus
-. Shrimps
+---
 
-=== Special Noodle 15,000 riel
-. Bean Sprout & Lettuce
-. Beef
-. Meat Ball
-. Crystal Beef
-. Shrimps
-. Cow-Joints
+## 🍲 Chinese Noodle — Kuy Teav
+
+Clear pork-bone broth simmered overnight, with rice noodles and
+crispy garlic. Served with bean sprouts, lettuce, lime, and chili.
+
+> **Choose your size:** Small · Large (+1,000៛)
+> **Choose your style:** Soup 🍜 or Dry (Kuy Teav Kh'ing) 🥢 — same price
+
+**Phnom Penh Standard — Kuy Teav Phnom Penh · 12,000៛**
+The classic. Mixed intestines, cow-joints & tongue, and beef,
+with bean sprouts & lettuce.
+
+**Beef Noodle · 12,000៛**
+Sliced beef and meatballs with bean sprouts & lettuce.
+
+**Beef-Joints Noodle · 13,000៛**
+Sliced beef, meatballs, and slow-cooked cow-joints
+with bean sprouts & lettuce.
+
+**Seafood Noodle · 13,000៛**
+Sliced octopus and shrimp with bean sprouts & lettuce.
+
+**Special Noodle · 15,000៛**
+Everything we're proud of — beef, meatballs, crystal beef,
+shrimp, and cow-joints with bean sprouts & lettuce.
+
+---
+
+## ➕ Add-ons
+
+- Extra noodle · 2,000៛
+- Extra meatballs · 2,000៛
+- Extra beef · 3,000៛
+- Fried egg · 2,000៛
+- Extra herbs & bean sprouts · free
+
+---
+
+## 🥤 Drinks
+
+- Iced tea (Tik Tae Kok) · free with dine-in
+- Bottled water · 1,000៛
+- Soft drinks (Coca / Sprite) · 2,500៛
+- Fresh sugarcane juice · 3,000៛
+- Iced coffee (Kafe Tik Kok) · 4,000៛
+
+---
+
+## 📝 Good to know
+
+- **Dine-in, takeaway & delivery** — order right here on Messenger.
+- **Spice & customization** — tell us mild, medium, or extra spicy;
+  we can leave out any topping you don't like.
+- **Vegetarian?** Ask for the Khmer noodle with veggie broth and no meat.
+- **Payment** — cash (riel & USD), ABA Pay, Wing, and KHQR.
