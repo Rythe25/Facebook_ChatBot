@@ -220,6 +220,36 @@ English, Khmer, and RAG retrieval all confirmed over real Messenger delivery.
 
 ---
 
+## ✅ Part 7 — Order type recorded in the sheet (2026-07-30)
+
+Bookings were saved without distinguishing how the customer wanted the food, so
+a delivery and a dine-in reservation looked identical in the sheet.
+
+| File | Change |
+|---|---|
+| `app/tools/sheets.py` | `save_booking` takes `order_type` ("Dine-in" / "Takeaway" / "Delivery"), written as a new 4th column. Logs the save. |
+| `app/prompts.py` | Agent works out the order type, asks for a delivery address, and records **only after the customer confirms** |
+
+Spreadsheet **Local Noodle**, tab **Sheet1** (the code uses `.sheet1`, the first
+tab by position, so its name doesn't matter). Columns are now:
+
+```
+Timestamp | Name | Phone | Order type | Order | Preferred time | Notes
+```
+
+Verified live — `scripts/local_test.py` with a one-shot delivery order wrote:
+
+```
+2026-07-30 23:11:58 | Dara | 011 222 333 | Delivery | 2 Special Noodle | Tomorrow at 7pm | Delivery address: St. 302 BKK1, no chili
+```
+
+The agent inferred `Delivery` and moved the address into notes unprompted.
+
+⚠️ The old `Sokha` test row predates this column, so its `Order` value sits in
+the `Order type` cell. Delete it (and add the header row) when convenient.
+
+---
+
 ## 🧪 Verification (all live calls, nothing mocked)
 
 ```
