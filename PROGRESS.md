@@ -250,6 +250,26 @@ the `Order type` cell. Delete it (and add the header row) when convenient.
 
 ---
 
+## 📦 Part 8 — Repo polish and publish (2026-07-30)
+
+Final pass to make the project presentable as a public GitHub repository.
+
+| File | Change |
+|---|---|
+| `README.md` | Rewritten as the repo landing page — badges, feature table, architecture diagram, six-step setup with every Meta click spelled out, config reference, a collapsible **Troubleshooting** section built from the real failures in Parts 2–5, and a customisation guide |
+| `.gitignore` | Removed a duplicate `credentials/` entry; added `*.log`, `ngrok.yml`, `ngrok.exe`, `*.json.bak` |
+| `.env.example` | Comments moved onto their own lines — a trailing `# ...` after a value is easy to paste over and hard to debug |
+| `app/agent.py` | Removed a stale `# Session 3-4: add tools=...` comment referring to a tool name that no longer exists |
+
+Verified before pushing: `git ls-files` contains no `.env`, no `credentials/`,
+no `__pycache__`, and no `.venv` — only source, data, docs and config.
+
+**Published to** <https://github.com/Rythe25/Facebook_ChatBot> — `feat/NoodleShop`
+pushed as `main`. The target repo previously held a single "Initial commit" with
+a stub `README.md` and unrelated history, so the push replaced it.
+
+---
+
 ## 🧪 Verification (all live calls, nothing mocked)
 
 ```

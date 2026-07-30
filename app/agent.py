@@ -28,7 +28,6 @@ def build_agent():
     else:
         raise ValueError(f"Unknown LLM_PROVIDER: {settings.llm_provider}")
 
-    # Session 3-4: add tools=[search_faq, save_to_sheet] to the call below
     _agent = create_agent(llm, tools=[search_faq, save_booking], system_prompt=SYSTEM_PROMPT)
     logger.info("Agent built (provider=%s).", settings.llm_provider)
     return _agent
