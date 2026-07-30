@@ -4,12 +4,12 @@
 **Branch:** `feat/NoodleShop`
 **Goal:** Refactor the RAG Messenger chatbot from *Happy Paws Pet Salon* into
 *Phnom Penh Noodle House*, a warm, friendly assistant for a local Khmer &
-Chinese noodle restaurant. (Source: `INSTRUCTION.md`)
+Chinese noodle restaurant.
 
-**Status: the bot runs and is verified end-to-end.** Server boots, FAQ retrieval
-answers from the noodle data, Khmer/English switching works, and a booking writes
-a real row to Google Sheets. Remaining work is cosmetic (README) plus the live
-Messenger test, which is **blocked on Meta, not on our code** — see Part 3.
+**Status: DONE. The bot is live on the real Page and verified end-to-end.**
+A customer messages the fanpage and the bot replies — in Khmer or English, with
+answers grounded in the noodle FAQ data, and bookings written to Google Sheets.
+No app publishing was required. See Part 5.
 
 ---
 
@@ -50,7 +50,12 @@ Housekeeping done in the same pass:
 
 ---
 
-## 🔍 Part 3 — Live Messenger test: diagnosed, blocked on Meta (2026-07-30)
+## 🔍 Part 3 — Live Messenger test: first diagnosis (2026-07-30)
+
+> ⚠️ **The root cause recorded in this section was WRONG.** It is kept as-is
+> because the *diagnostic method* was sound and worth reusing — but the actual
+> cause was a missing Page-level subscription, not the unpublished app.
+> **See Part 5 for the correction.**
 
 Messaged the page from the admin account ("hi", then "Hi"). Both landed in the
 Page inbox; the bot never replied. Everything on our side checks out:
@@ -65,16 +70,19 @@ Page inbox; the bot never replied. Everything on our side checks out:
 | Meta dashboard config | ✅ Callback URL saved, `messages` field **Subscribed** (v26.0) |
 | **Webhook POSTs Meta actually sent** | ❌ **zero** — ngrok's request log (`http://127.0.0.1:4040/api/requests/http`) shows only our own test GETs |
 
-**Root cause — the app is unpublished.** The Meta webhook page states it plainly:
+**Conclusion drawn at the time (incorrect) — the app is unpublished.** The Meta
+webhook page states:
 
 > Apps will only be able to receive test webhooks sent from the dashboard while
 > the app is unpublished. No production data, **including from app admins,
 > developers or testers**, will be delivered unless the app has been published.
 
-This is a *change* from the old behaviour that Session 1 notes (and this file's
-"How to run" section) assumed — development mode used to deliver messages from
-app admins/testers. It no longer does for Messenger. Correct callback URL +
-subscribed `messages` field + valid token are all necessary but **not sufficient**.
+That banner is real, but it was **not** what was happening here. The checklist
+above has a hole: the "Subscribed" state it verified is the **app-level** webhook
+*field* toggle, not the **Page-level** subscription. Both are required, and only
+the first was ever confirmed. Correct callback URL + subscribed `messages` field
++ valid token really are necessary-but-not-sufficient — the missing piece was the
+Page subscription, not publishing. See Part 5.
 
 ### Diagnostic technique worth reusing
 
@@ -82,17 +90,148 @@ subscribed `messages` field + valid token are all necessary but **not sufficient
 calling us" from "our handler is broken". If that log is empty, no amount of code
 debugging helps — the problem is in the Meta dashboard or app mode.
 
-### To unblock
+### What was actually missing
 
-1. **Test button** next to `messages` on the Webhooks page — Meta POSTs a sample
-   payload even while unpublished. Proves the server → agent path end-to-end.
-   (`send_message` will fail on the fake sample PSID; that is expected.)
-2. **Publish the app**: App Dashboard → toggle **Development → Live**. Requires
-   App Settings → Basic to have a Privacy Policy URL, an app category, and
-   usually a 1024×1024 icon. No App Review / Business Verification needed to
-   message a page you have a role on — Standard Access `pages_messaging` covers
-   admins/testers; Advanced Access is only for the general public.
-3. Message the page again → expect `POST /webhook` + `Incoming webhook payload`.
+The Page-level subscription. See Part 5 — it took one dashboard toggle, and no
+publishing at all.
+
+---
+
+## ✅ Part 4 — Testing without Meta in the loop (2026-07-30)
+
+> Written while Part 3's diagnosis was believed correct. `fake_webhook.py` is
+> still genuinely useful — it tests the whole loop with no ngrok and no
+> dashboard — but it is now a convenience, not a workaround. Real delivery works
+> (Part 5).
+
+Key insight at the time: **only the inbound direction is blocked.** The
+*outbound* Graph API send is unaffected —
+`pages_messaging` Standard Access covers anyone with a role on the page. So we
+fake the inbound payload and the reply still arrives in real Messenger.
+
+`scripts/fake_webhook.py` **(new)** POSTs a Meta-shaped payload straight to
+`http://127.0.0.1:8000/webhook`, using the real PSID captured in Part 3:
+
+```powershell
+uvicorn app.main:app --reload --port 8000          # terminal 1
+python scripts/fake_webhook.py "What time do you open?"   # terminal 2
+python scripts/fake_webhook.py "សួស្តី តើហាងលក់មីអីខ្លះ?"
+python scripts/fake_webhook.py --psid <other-psid> "hi"
+```
+
+No ngrok needed — the POST goes to localhost.
+
+### The three testing tiers
+
+| Tier | Command | Covers | Doesn't cover |
+|---|---|---|---|
+| Agent only | `python scripts/local_test.py` | LLM, prompt, RAG, Sheets, memory | webhook parsing, Facebook send |
+| **Full loop, faked inbound** | `python scripts/fake_webhook.py "..."` | **everything** — payload parsing, `is_echo` filter, agent, real send to Messenger | only that Meta didn't originate the POST |
+| Meta's Test button | Webhooks page → **Test** next to `messages` | Meta → ngrok URL actually reaches us | `send_message` fails — the sample PSID is fake |
+
+Tier 2 exercises the identical code path a real message would. The one untested
+link is Meta's delivery, already proven separately by the ngrok handshake (Part 3).
+
+### Gotchas
+
+- **24-hour messaging window** — the send only succeeds if that PSID messaged the
+  page within 24h. Error code 10 / "outside allowed window" means it lapsed: message
+  the page from that account again (still lands in the inbox in dev mode) and re-run.
+- The window is driven by the user's *actual* last message, which Meta records
+  regardless of whether a webhook was delivered — so dev mode doesn't prevent
+  reopening it.
+- Memory is in-process (`app/memory.py`), so `--reload` restarts wipe conversation
+  history mid-test.
+
+---
+
+## ✅ Part 5 — Real Messenger delivery working (2026-07-30)
+
+**Root cause: the Page was never subscribed to the app.** Publishing was never
+required. Meta exposes *two* separate subscriptions and they are easy to
+conflate:
+
+| # | Where | Means | Verified in Part 3? |
+|---|---|---|---|
+| 1 | App Dashboard → **Webhooks** → `messages` toggle | "my app is interested in `messages` events" | ✅ yes |
+| 2 | App Dashboard → **Messenger → Messenger API Settings** → per-Page subscription | "**this Page** routes its events to my app" | ❌ **never checked** |
+
+Only #1 was ever confirmed. Without #2, Meta has no route from the Page to the
+app and drops the event before app-mode is even relevant — which is exactly why
+the tunnel log stayed empty and looked identical to the unpublished-app symptom.
+
+The programmatic check needs a scope the original token lacked:
+
+```
+GET /{page-id}/subscribed_apps
+-> 403 (#200) Requires pages_manage_metadata permission
+```
+
+Fixed by subscribing the Page in the dashboard and regenerating the token.
+
+### Second bug, found immediately after
+
+With delivery fixed, Meta's POSTs started arriving — as `502 Bad Gateway`.
+ngrok's tunnel was healthy; **uvicorn was simply not running**. `ngrok http 8000`
+happily stays up with nothing behind it, and a dead server is indistinguishable
+from a misconfigured one if you only look at the Meta side.
+
+Order of checks that works, cheapest first:
+
+1. `curl http://127.0.0.1:8000/` — is the app even up?
+2. `curl http://127.0.0.1:4040/api/tunnels` — is ngrok pointed at the right port?
+3. `curl https://<ngrok>/webhook?hub.mode=subscribe&hub.verify_token=x&hub.challenge=PING`
+   — a `403 Verification failed` is a **success** signal here: it proves the
+   request reached our handler.
+4. `GET /me` with the page token — catches a stale token before it shows up as a
+   silent send failure.
+
+### Third fix — token was leaking into the logs
+
+`messenger.py` sent the page access token as a **query parameter**, and httpx
+logs full request URLs at INFO, so every reply printed the live token to the
+console:
+
+```
+INFO:httpx:HTTP Request: POST .../me/messages?access_token=EAASAq9Ol8V8BS...
+```
+
+Now sent as an `Authorization: Bearer` header, and `httpx`'s logger is pinned to
+WARNING in `main.py`. Verified the Graph API accepts Bearer auth (`GET /me` → 200).
+
+⚠️ **The already-printed token still needs rotating.** The fix stops future
+leaks; it does not un-leak the token that was written to the console before it.
+
+### Confirmed working
+
+Server log from the real Page conversation — no mocks, no `fake_webhook.py`:
+
+```
+Message from 37429592776655622: Hello                     -> Sent reply
+Message from 37429592776655622: When is the opening time  -> Pinecone top_k=3 -> Sent reply
+Message from 37429592776655622: អ្នកមានស៊ុបប្រភេទណាខ្លះ?       -> Pinecone x3      -> Sent reply
+POST /webhook HTTP/1.1" 200 OK
+```
+
+English, Khmer, and RAG retrieval all confirmed over real Messenger delivery.
+
+---
+
+## 🧹 Part 6 — Cleanup (2026-07-30)
+
+| File | Change |
+|---|---|
+| `requirements.txt` | Consolidated all four session files into one |
+| `requirements_session{2,3,4}.txt` | Deleted — merged above |
+| `HOW_TO.md` | Deleted — speculative and partly wrong ("inferred from the structure"); README covers setup properly |
+| `INSTRUCTION.md` | Deleted — the refactor brief; work complete |
+| `README.md` | Rewritten — still described *Happy Paws Pet Salon*. Now documents the noodle shop, the correct model (`gemini-flash-latest`), the single requirements file, and **both** Meta subscription steps |
+| `app/messenger.py` | Token moved from query param to `Authorization` header |
+| `app/main.py` | `httpx` logger pinned to WARNING; removed stale `TODO (Session 2)` (done by `lifespan`) |
+| `app/memory.py` | Removed `clear_history()` — never called |
+| `scripts/fake_webhook.py` | Committed (was untracked) |
+
+`docs/` (PRD, ARCHITECTURE, SPRINT_PLAN) left untouched — course scaffolding, not app docs.
 
 ---
 
@@ -137,22 +276,32 @@ uvicorn app.main:app --reload --port 8000     # terminal 1
 ngrok http 8000                               # terminal 2 → copy the https URL
 ```
 
-Meta dashboard → app **LocalNoodle** → Messenger → Webhooks:
-- Callback URL: `https://<ngrok>.ngrok-free.app/webhook`
-- Verify token: value of `FB_VERIFY_TOKEN` in `.env`
-- Subscribe the page to the **messages** field
+Meta dashboard → app **Phnom Penh Local Noodle** — **both** of these:
+1. **Webhooks** → Callback URL `https://<ngrok>.ngrok-free.dev/webhook`,
+   Verify token = `FB_VERIFY_TOKEN` from `.env`, subscribe the **messages** field
+2. **Messenger → Messenger API Settings** → subscribe the **Page** to the app
 
-Notes: ngrok's free URL changes on every restart (re-paste it into Meta each
-time — delivery silently stops otherwise), and the app **must be published /
-Live** or Meta delivers nothing at all, admins included (see Part 3).
+Notes: ngrok's free URL changes on every restart (re-paste it into step 1 each
+time — delivery silently stops otherwise). The app does **not** need to be
+published; Development mode delivers fine once step 2 is done (Part 5).
+
+**To just test the bot, skip all of the above** (no ngrok, no Meta dashboard):
+
+```powershell
+uvicorn app.main:app --reload --port 8000
+python scripts/fake_webhook.py "What time do you open?"
+```
+
+See Part 4.
 
 ---
 
 ## ⏭️ Next steps / TODO
 
-- [ ] **Publish the app (Development → Live)** — the one blocker for the live Messenger test. Needs a Privacy Policy URL + app category first.
-- [ ] **Live Messenger test** — after publishing: server + tunnel up, message the page, expect `POST /webhook`.
-- [ ] **`README.md` still describes Happy Paws Pet Salon** — the only file not refactored.
+- [x] **`README.md`** rewritten for the noodle shop (Part 6).
+- [x] Real Messenger delivery working end-to-end (Part 5).
+- [x] Page access token no longer leaked into logs (Part 5).
+- [ ] **Rotate `FB_PAGE_ACCESS_TOKEN`** — the pre-fix token was printed to the console (Part 5).
 - [ ] Optional: reserve ngrok's free static domain so the Callback URL stops changing on every restart.
 - [ ] Optional: add a header row to the sheet (`Timestamp | Name | Phone | Order | Preferred time | Notes`) and delete the "Sokha" test row.
 - [ ] Optional hardening: `sheets.py` and `faq_search.py` connect at **import time**, so any external misconfiguration takes down the whole server instead of degrading one tool. Lazy-connect on first use would keep chat + FAQ alive when Sheets is down.
@@ -162,5 +311,6 @@ Live** or Meta delivers nothing at all, admins included (see Part 3).
 ## 📋 Commit history on this branch
 
 - **2026-07-30** — Parts 1–3 committed on `feat/NoodleShop`: content refactor, runnability fixes, and this progress log.
+- **2026-07-30** — Parts 5–6: real Messenger delivery fixed (Page subscription), token leak closed, project cleaned up, README rewritten.
 
 (`.env` and `app/credentials/` stay gitignored — they hold the real keys.)

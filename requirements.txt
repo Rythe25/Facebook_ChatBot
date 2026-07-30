@@ -1,9 +1,30 @@
-# Session 1 — echo bot only.
-# Just enough to run the FastAPI webhook and reply on Facebook Messenger.
-# (The full langchain / pinecone / gspread stack is added in later sessions.)
-# Install with:  pip install -r requirements.txt   (Python 3.11 or 3.12)
+# Phnom Penh Noodle House — Messenger chatbot
+# Everything the app needs, in one file.
+#   pip install -r requirements.txt      (Python 3.11–3.13)
 
+# --- Web layer: the FastAPI webhook Facebook calls ---
 fastapi
 uvicorn[standard]
 pydantic-settings
 httpx
+
+# --- Agent: LangChain + Gemini ---
+# langchain-core arrives as a dependency (memory.py uses InMemoryChatMessageHistory).
+# GoogleGenerativeAIEmbeddings also supplies the embeddings used for RAG.
+langchain
+langchain-google-genai
+
+# Only needed if you set LLM_PROVIDER=openai instead of gemini:
+# langchain-openai
+
+# --- RAG: FAQ vector search ---
+pinecone
+
+# --- Booking action: write orders/reservations into Google Sheets ---
+# gspread pulls in google-auth, which reads app/credentials/service_account.json.
+# Remember to share the spreadsheet with that account's client_email as Editor.
+gspread
+
+# Standalone scripts in scripts/ read .env directly; the app itself goes
+# through pydantic-settings.
+python-dotenv

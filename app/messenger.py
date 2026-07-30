@@ -21,7 +21,10 @@ async def send_message(recipient_id: str, text: str) -> None:
         "recipient": {"id": recipient_id},
         "message": {"text": text},
     }
-    params = {"access_token": settings.fb_page_access_token}
+    # Pass the token as a Bearer header, NOT a query param. httpx logs the full
+    # request URL at INFO level, so a token in the querystring gets printed to
+    # the console — and into any captured log file — on every single reply.
+    headers = {"Authorization": f"Bearer {settings.fb_page_access_token}"}
 
     # NOTE on pitfall #1 (newline/quote escaping): the old n8n build broke
     # because it hand-built the JSON string. Here we pass `json=payload` and
@@ -29,7 +32,7 @@ async def send_message(recipient_id: str, text: str) -> None:
     # do NOT manually escape, or you'll double-escape and send literal "\n".
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.post(GRAPH_API_URL, params=params, json=payload)
+            response = await client.post(GRAPH_API_URL, headers=headers, json=payload)
             response.raise_for_status()
             logger.info("Sent reply to %s", recipient_id)
     except httpx.HTTPError as error:
